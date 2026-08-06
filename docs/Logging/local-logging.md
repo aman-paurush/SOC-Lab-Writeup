@@ -16,7 +16,7 @@ ii. Click **Local Policies → Audit Policy**.
 
 iii. Configure the required audit policies.
 
-![Local Security Policy](../images/logging/local-logging/local_security_policy.png)
+![Local Security Policy](../../images/logging/local-logging/local_security_policy.png)
 
 For example, click **Audit logon events**, select **Success** and **Failure**, then click **Apply** and **OK**.
 
@@ -46,7 +46,7 @@ iii. Run the Hydra command to perform an FTP brute-force attack.
 hydra -L "/root/Wordlist/userlist.txt" -P "/root/Wordlist/pass.txt" ftp://10.10.10.12
 ```
 
-![Generate Logs](../images/logging/local-logging/generate-logs.png)
+![Generate Logs](../../images/logging/local-logging/generate-logs.png)
 
 After running Hydra, the correct credentials are discovered.
 
@@ -68,7 +68,7 @@ Enter the username and password obtained from Hydra.
 
 If the login is successful, the FTP session will be established.
 
-![Remote Login](../images/logging/local-logging/remote-login.png)
+![Remote Login](../../images/logging/local-logging/remote-login.png)
 
 ---
 
@@ -87,7 +87,7 @@ The following Event IDs are used:
 - **4624** – Successful logon
 - **4625** – Failed logon
 
-![Event ID 4624](SOC-Lab-Writeup/images/logging/local-logging/event-4624.png)
+![Event ID 4624](../../images/logging/local-logging/event-4624.png)
 
 Audit Failure log entries are displayed for failed login attempts. Click on any event to view detailed information such as the account name, source IP, logon type, and failure reason.
 
