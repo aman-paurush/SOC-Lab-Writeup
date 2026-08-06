@@ -32,6 +32,9 @@ The **Logging** pane displays the directory where IIS stores its log files.
 
 To include additional information in the log file, click **Select Fields...**, choose the required fields, and click **OK**.
 
+![Select fields for additional information](../../images/logging/IIS-logs/select-field.png)
+
+
 ---
 
 ## 2. Generate IIS Logs
