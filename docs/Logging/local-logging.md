@@ -87,7 +87,7 @@ The following Event IDs are used:
 - **4624** – Successful logon
 - **4625** – Failed logon
 
-![Event ID 4624](../images/logging/local-logging/event-4624.png)
+![Event ID 4624](SOC-Lab-Writeup/images/logging/local-logging/event-4624.png)
 
 Audit Failure log entries are displayed for failed login attempts. Click on any event to view detailed information such as the account name, source IP, logon type, and failure reason.
 
