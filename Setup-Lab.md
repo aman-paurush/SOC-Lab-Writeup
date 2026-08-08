@@ -10,14 +10,8 @@ The objective of this lab is to build a basic Security Operations Center (SOC) e
 
 The lab consists of an attacker machine (Ubuntu), a target Windows 10 endpoint, and a Splunk server running on the host machine.
 
-```
-+---------------------+                          +----------------------+        TCP 9997        +----------------------+
-|  Ubuntu (Attacker)  | ---- Nmap / Hydra ----> |   Windows 10 VM       | ---------------------> |  Splunk Enterprise   |
-|                      |     SQL Injection        |   (Target / IIS)      |                        |      (Host PC)       |
-|  Nmap, Hydra,        |                          |  Event Viewer         |                        |  Search & Reporting  |
-|  SQLi tooling        |                          |  Universal Forwarder  |                        |  Dashboards & Alerts |
-+----------------------+                          +------------------------+                        +----------------------+
-```
+![Project Architecture](images/lab-setup/architecture.png)
+
 
 The Ubuntu attacker machine scans and attacks the Windows 10 IIS web server (Nmap reconnaissance, Hydra brute-force, SQL injection attempts). The resulting Windows Event Logs, IIS logs, and Snort alerts are collected by the Universal Forwarder and sent to Splunk Enterprise for indexing, search, and detection.
 

@@ -51,6 +51,8 @@ The objective of this project is to understand how logs are generated, collected
                 +---------------------------+
 ```
 
+The logging documentation set now includes local logging, IIS logs, Snort IDS logs, and Splunk logging guides for a more complete lab walkthrough.
+
 ---
 
 ## Project Structure
@@ -59,15 +61,24 @@ The objective of this project is to understand how logs are generated, collected
 SOC-Lab-Writeup/
 │
 ├── docs/
-│   ├── lab-setup.md
+│   ├── Incident Detection and Triage/
 │   └── Logging/
+│       ├── IIS-logs.md
 │       ├── local-logging.md
-│       ├── iis-logs.md
-│       └── snort-logs.md
+│       ├── snort-IDS-logs.md
+│       └── Splunk-Logging.md
 │
 ├── images/
-│
-└── README.md
+│   ├── Incident Detection and Triage/
+│   ├── lab-setup/
+│   ├── logging/
+│   │   ├── IIS-logs/
+│   │   ├── local-logging/
+│   │   ├── snort/
+│   │   └── various-sources/
+│   └──
+├── readme.md
+└── Setup-Lab.md
 ```
 
 ---
