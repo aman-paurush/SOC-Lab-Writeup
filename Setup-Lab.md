@@ -2,22 +2,24 @@
 
 ## Objective
 
-The objective of this lab is to build a basic Security Operations Center (SOC) environment using Splunk Enterprise for centralized log collection, monitoring, and threat detection. The lab simulates how security analysts collect logs from endpoints and investigate security events.
+The objective of this lab is to build a basic Security Operations Center (SOC) environment using Splunk Enterprise for centralized log collection, monitoring, and threat detection. The lab simulates how security analysts collect logs from endpoints, detect attacker activity, and investigate security events.
 
 ---
 
 ## Lab Architecture
 
-The lab consists of one Windows endpoint and one Splunk server running on the host machine.
+The lab consists of an attacker machine (Ubuntu), a target Windows 10 endpoint, and a Splunk server running on the host machine.
 
 ```
-+-------------------+        TCP 9997        +----------------------+
-|  Windows 10 VM    | ---------------------> |  Splunk Enterprise   |
-|                    |                        |      (Host PC)       |
-| Event Viewer       |                        | Search & Reporting   |
-| Universal Forwarder|                        | Dashboards & Alerts  |
-+--------------------+                        +----------------------+
++---------------------+                          +----------------------+        TCP 9997        +----------------------+
+|  Ubuntu (Attacker)  | ---- Nmap / Hydra ----> |   Windows 10 VM       | ---------------------> |  Splunk Enterprise   |
+|                      |     SQL Injection        |   (Target / IIS)      |                        |      (Host PC)       |
+|  Nmap, Hydra,        |                          |  Event Viewer         |                        |  Search & Reporting  |
+|  SQLi tooling        |                          |  Universal Forwarder  |                        |  Dashboards & Alerts |
++----------------------+                          +------------------------+                        +----------------------+
 ```
+
+The Ubuntu attacker machine scans and attacks the Windows 10 IIS web server (Nmap reconnaissance, Hydra brute-force, SQL injection attempts). The resulting Windows Event Logs, IIS logs, and Snort alerts are collected by the Universal Forwarder and sent to Splunk Enterprise for indexing, search, and detection.
 
 ---
 
@@ -25,10 +27,11 @@ The lab consists of one Windows endpoint and one Splunk server running on the ho
 
 | Component | Purpose |
 |----------|---------|
-| Windows 10 VM | Generates Windows Event Logs |
-| Splunk Universal Forwarder | Collects and forwards logs |
+| Ubuntu VM (Attacker) | Simulates attacks — Nmap scans, Hydra brute-force, SQL injection |
+| Windows 10 VM (Target) | Runs IIS, generates Windows Event Logs |
+| Splunk Universal Forwarder | Collects and forwards logs from the target |
 | Splunk Enterprise | Receives, indexes, and analyzes logs |
-| VirtualBox | Hosts the Windows virtual machine |
+| VirtualBox | Hosts both the Windows and Ubuntu virtual machines |
 
 ---
 
@@ -39,14 +42,15 @@ The lab consists of one Windows endpoint and one Splunk server running on the ho
 3. Fill in your email and create an account. Verify your email if prompted.
 4. Once logged in, you'll land on the **Splunk Downloads** page — keep this open for Step 2.
 
-![Splunk Signup](signup.png)
+![Splunk Signup](images/lab-setup/signup.png)
 
 ---
 
 ## Step 2: Install Splunk Enterprise (on Host Machine)
 
 1. From the Downloads page, select your OS (Windows/Linux/macOS) and download the installer.
-![Splunk Download](download.png)
+
+![Splunk Download](images/lab-setup/download.png)
 
 2. Run the installer:
    - Accept the license agreement.
@@ -58,24 +62,47 @@ The lab consists of one Windows endpoint and one Splunk server running on the ho
    ```
 4. Log in with the admin credentials created above.
 
-**✅ Checkpoint:** You should now see the Splunk Enterprise home screen (**Figure 2**).
+**✅ Checkpoint:** You should now see the Splunk Enterprise home screen.
+
+![Login to Splunk Enterprise](images/lab-setup/login.png)
 
 ---
 
-## Step 3: Set Up the Windows 10 Endpoint (VM)
+## Step 3: Set Up the Windows 10 Endpoint (Target VM)
 
 1. Install **VirtualBox** (or your preferred hypervisor) on the host machine.
-2. Create a new VM and install **Windows 10** using an ISO image.
+2. Create a new VM and install **Windows 10** using an ISO image. Install and configure **IIS** so the box has a live web service to be attacked and to log against.
 3. Allocate at least 2 vCPUs and 4GB RAM for smooth performance.
-4. Set the VM's network adapter to **Bridged Adapter** (or **Host-Only + NAT**) so it can reach the host machine's IP over the network — this is required for the forwarder to send logs later.
-5. Once Windows 10 boots, note down its IP address (`ipconfig` in Command Prompt) — you'll need this to confirm connectivity.
+4. Set the VM's network adapter to **Bridged Adapter** (or **Host-Only + NAT**) so it can reach both the host machine and the attacker VM over the network.
+5. Once Windows 10 boots, note down its IP address (`ipconfig` in Command Prompt) — the attacker VM and the forwarder configuration will both need this.
 
-**✅ Checkpoint:** Windows 10 VM is running and reachable from the host (**Figure 1**).
+**✅ Checkpoint:** Windows 10 VM is running, IIS is reachable, and the host can connect to it.
 
-![Window 10 VM](win10.png)
+![Windows 10 VM](images/lab-setup/win10.png)
+
 ---
 
-## Step 4: Enable a Receiving Port on Splunk (Host Machine)
+## Step 4: Set Up the Ubuntu Endpoint (Attacker VM)
+
+1. In VirtualBox, create a new VM and install **Ubuntu** (Desktop or Server edition).
+2. Allocate at least 2 vCPUs and 2–4GB RAM.
+3. Set the network adapter to the **same network mode** as the Windows 10 VM (Bridged, or the same Host-Only network) so it can reach the target.
+4. Install attacker tooling:
+   ```bash
+   sudo apt update
+   sudo apt install nmap hydra sqlmap -y
+   ```
+5. Verify connectivity to the Windows 10 target:
+   ```bash
+   ping <windows10-vm-ip>
+   nmap <windows10-vm-ip>
+   ```
+
+**✅ Checkpoint:** Ubuntu VM can reach the Windows 10 target and Nmap returns open ports (e.g., 80/443 for IIS).
+
+---
+
+## Step 5: Enable a Receiving Port on Splunk (Host Machine)
 
 Before installing the forwarder, tell Splunk Enterprise to listen for incoming forwarded data.
 
@@ -86,7 +113,7 @@ Before installing the forwarder, tell Splunk Enterprise to listen for incoming f
 
 ---
 
-## Step 5: Install Splunk Universal Forwarder (on Windows 10 VM)
+## Step 6: Install Splunk Universal Forwarder (on Windows 10 VM)
 
 1. On the **host machine's** Splunk Downloads page, select **Universal Forwarder**, choose Windows, and download the installer.
 2. Transfer the installer to the Windows 10 VM (via shared folder, USB, or direct download inside the VM).
@@ -97,12 +124,13 @@ Before installing the forwarder, tell Splunk Enterprise to listen for incoming f
    - Create a forwarder admin username/password (can differ from the Splunk Enterprise credentials).
 4. Complete the installation. The Universal Forwarder runs as a Windows service in the background.
 
-**✅ Checkpoint:** Universal Forwarder is installed and running on the Windows endpoint (**Figure 3**).
-![Splunk Forwarder](image.png)
+**✅ Checkpoint:** Universal Forwarder is installed and running on the Windows endpoint.
+
+![Splunk Forwarder](images/lab-setup/splunkforwarder.png)
 
 ---
 
-## Step 6: Configure Log Forwarding (Windows Event Logs)
+## Step 7: Configure Log Forwarding (Windows Event Logs)
 
 1. On the Windows VM, navigate to the Universal Forwarder install directory, typically:
    ```
@@ -128,9 +156,11 @@ Before installing the forwarder, tell Splunk Enterprise to listen for incoming f
    net start SplunkForwarder
    ```
 
+*(IIS log forwarding and Snort log forwarding are configured separately — see `iis-logs.md` and `snort-logs.md`.)*
+
 ---
 
-## Step 7: Verify Data Is Flowing into Splunk
+## Step 8: Verify Data Is Flowing into Splunk
 
 1. On the host machine, open the Splunk web interface and go to **Search & Reporting**.
 2. Run a basic search to confirm logs are arriving:
@@ -141,36 +171,14 @@ Before installing the forwarder, tell Splunk Enterprise to listen for incoming f
 4. If no data appears, check:
    - Windows Firewall isn't blocking port 9997 on either machine.
    - The forwarder service is running (`services.msc` on the VM).
-   - The receiving port is correctly configured on the host (Step 4).
+   - The receiving port is correctly configured on the host (Step 5).
 
 **✅ Checkpoint:** Search results return live events from the Windows endpoint — the pipeline is working end-to-end.
 
----
-
-## Screenshot 1 – Windows Virtual Machine
-
-![Windows VM](../images/lab-setup/vm.png.jpg)
-
-**Figure 1:** Windows 10 virtual machine used as the monitored endpoint.
-
----
-
-## Screenshot 2 – Splunk Enterprise
-
-![Splunk Enterprise](../images/lab-setup/splunk-home.png)
-
-**Figure 2:** Splunk Enterprise dashboard running on the host machine.
-
----
-
-## Screenshot 3 – Splunk Universal Forwarder
-
-![Forwarder](../images/lab-setup/forwarder-installed.png)
-
-**Figure 3:** Splunk Universal Forwarder installed on the Windows endpoint.
+![Splunk Enterprise](images/lab-setup/SplunkEnterprise.png)
 
 ---
 
 ## Summary
 
-Starting from a fresh Splunk account, this setup walks through installing Splunk Enterprise on the host machine, provisioning a Windows 10 endpoint in VirtualBox, and deploying the Splunk Universal Forwarder to collect Windows Event Logs. By the end of this stage, the Windows endpoint is generating security events, the Universal Forwarder is collecting them, and Splunk Enterprise is indexing them — laying the foundation for the detection, dashboarding, and alerting work covered in the next sections of this lab.
+Starting from a fresh Splunk account, this setup walks through installing Splunk Enterprise on the host machine, provisioning a Windows 10 target endpoint (running IIS) and an Ubuntu attacker VM in VirtualBox, and deploying the Splunk Universal Forwarder to collect Windows Event Logs. By the end of this stage, the attacker VM can reach and scan the target, the Windows endpoint is generating security events, the Universal Forwarder is collecting them, and Splunk Enterprise is indexing them — laying the foundation for the attack simulation, detection, dashboarding, and alerting work covered in the next sections of this lab.
