@@ -22,34 +22,7 @@ The objective of this project is to understand how logs are generated, collected
 
 ## Architecture
 
-```
-                  +-----------------------+
-                  |    Ubuntu Attacker    |
-                  |  Nmap • Hydra • SQLi  |
-                  +----------+------------+
-                             |
-                             |
-                             ▼
-               +-----------------------------+
-               |     Windows 10 Web Server   |
-               |-----------------------------|
-               | Windows Event Logs          |
-               | IIS Web Server Logs         |
-               | Snort IDS Logs              |
-               +--------------+--------------+
-                              |
-                 Splunk Universal Forwarder
-                              |
-                              ▼
-                +---------------------------+
-                |     Splunk Enterprise     |
-                |---------------------------|
-                | Search & Reporting        |
-                | Dashboards                |
-                | Detection Rules           |
-                | Alerts                    |
-                +---------------------------+
-```
+![Project Architecture](images/lab-setup/architecture.png)
 
 The logging documentation set now includes local logging, IIS logs, Snort IDS logs, and Splunk logging guides for a more complete lab walkthrough.
 
